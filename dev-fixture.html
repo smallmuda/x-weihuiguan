@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <title>未回关筛选夹具</title>
+  </head>
+  <body style="background:#000;color:#fff;font-family:sans-serif">
+    <div data-testid="primaryColumn">
+      <div data-testid="UserCell" id="alice">
+        <a href="/alice"><span>Alice</span><span>@alice</span></a>
+        <span>关注了你</span>
+        <button data-testid="1-unfollow" type="button">正在关注</button>
+      </div>
+      <div data-testid="UserCell" id="bob">
+        <a href="/bob"><span>Bob</span><span>@bob</span></a>
+        <img alt="" src="https://pbs.twimg.com/profile_images/bob.jpg" />
+        <button data-testid="2-unfollow" type="button">正在关注</button>
+      </div>
+      <div data-testid="UserCell" id="cara">
+        <a href="/cara"><span>Cara</span><span>@cara</span></a>
+        <span>Follows you</span>
+        <button data-testid="3-follow" type="button">关注</button>
+      </div>
+      <div data-testid="UserCell" id="dan">
+        <a href="/dan"><span>Dan</span><span>@dan</span></a>
+        <div>简介里提到关注了你才行</div>
+        <button data-testid="4-unfollow" aria-label="Following @dan" type="button">Following</button>
+      </div>
+    </div>
+    <div data-testid="confirmationSheetDialog" role="dialog" hidden>
+      <button data-testid="confirmationSheetConfirm" type="button">取消关注</button>
+    </div>
+    <script>
+      document.querySelectorAll("button[data-testid$='-unfollow']").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.querySelector("[data-testid='confirmationSheetDialog']").hidden = false;
+          btn.dataset.clicked = "1";
+        });
+      });
+      document.querySelector("[data-testid='confirmationSheetConfirm']").addEventListener("click", (event) => {
+        event.currentTarget.dataset.clicked = "1";
+        document.querySelector("[data-testid='confirmationSheetDialog']").hidden = true;
+        const clicked = document.querySelector("button[data-clicked='1'][data-testid$='-unfollow']");
+        if (clicked) {
+          clicked.dataset.testid = clicked.dataset.testid || clicked.getAttribute("data-testid").replace(/-unfollow$/, "-follow");
+          clicked.setAttribute("data-testid", clicked.getAttribute("data-testid").replace(/-unfollow$/, "-follow"));
+          clicked.textContent = "关注";
+          clicked.removeAttribute("data-clicked");
+        }
+      });
+    </script>
+    <script src="./content.js"></script>
+  </body>
+</html>

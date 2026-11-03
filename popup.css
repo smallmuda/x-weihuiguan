@@ -1,0 +1,47 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  width: 300px;
+  color: #e7e9ea;
+  background: #15202b;
+  font: 13px/1.5 -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", sans-serif;
+}
+
+main {
+  padding: 14px 14px 12px;
+}
+
+h1 {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+p {
+  margin: 0 0 10px;
+  color: #8b98a5;
+}
+
+button {
+  width: 100%;
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: #1d9bf0;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #1a8cd8;
+}
+
+#status {
+  min-height: 1.4em;
+  margin: 8px 0 0;
+}
