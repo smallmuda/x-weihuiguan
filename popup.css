@@ -25,6 +25,20 @@ p {
   color: #8b98a5;
 }
 
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  color: #e7e9ea;
+}
+
+.row input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
 button {
   width: 100%;
   border: 0;
@@ -39,6 +53,11 @@ button {
 
 button:hover {
   background: #1a8cd8;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 #status {

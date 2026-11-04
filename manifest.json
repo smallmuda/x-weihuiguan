@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "X 未回关筛选",
   "description": "在 X 的关注列表里筛出你已关注、但对方没有回关的账号，并可取消关注。",
-  "version": "1.0.0",
-  "permissions": ["activeTab"],
+  "version": "1.1.0",
+  "permissions": ["activeTab", "storage"],
   "host_permissions": [
     "https://x.com/*",
     "https://twitter.com/*"

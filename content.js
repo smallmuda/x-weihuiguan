@@ -20,7 +20,8 @@
 
   const state = {
     collapsed: false,
-    dimOthers: true,
+    enabled: true,
+    dimOthers: false,
     job: 0,
     order: 0,
     byHandle: new Map(),
@@ -183,7 +184,11 @@
         <button class="btn" type="button" data-action="open-following" id="open-following" hidden>打开正在关注</button>
       </div>
       <label class="check">
-        <input id="dim" type="checkbox" checked />
+        <input id="power" type="checkbox" checked />
+        启用扩展
+      </label>
+      <label class="check">
+        <input id="dim" type="checkbox" />
         淡化不是这类的人
       </label>
       <div class="stats" id="stats"></div>
@@ -494,7 +499,7 @@
 
   let paintScheduled = false;
   function schedulePaint() {
-    if (paintScheduled) return;
+    if (!state.enabled || paintScheduled) return;
     paintScheduled = true;
     requestAnimationFrame(() => {
       paintScheduled = false;
@@ -710,9 +715,36 @@
       <button class="btn" type="button" data-action="cancel-unfollow">返回</button>`;
   }
 
+  function clearMarks(kind) {
+    const selector = kind ? `[data-xnf="${kind}"]` : "[data-xnf]";
+    document.querySelectorAll(selector).forEach((el) => el.removeAttribute("data-xnf"));
+  }
+
   function applyCollapsed() {
-    $("panel").hidden = state.collapsed;
-    $("tab").hidden = !state.collapsed;
+    $("panel").hidden = state.collapsed || !state.enabled;
+    $("tab").hidden = !state.collapsed || !state.enabled;
+  }
+
+  function applyEnabled() {
+    $("power").checked = state.enabled;
+    $("dim").checked = state.dimOthers;
+    if (!state.enabled) {
+      stopJob();
+      clearMarks();
+      host.style.display = "none";
+      applyCollapsed();
+      return;
+    }
+    host.style.display = "block";
+    applyCollapsed();
+  }
+
+  function saveSettings() {
+    applyEnabled();
+    if (typeof chrome === "undefined" || !chrome.storage?.local) return;
+    chrome.storage.local.set({
+      xnfSettings: { enabled: state.enabled, dimOthers: state.dimOthers },
+    });
   }
 
   function stopJob() {
@@ -736,6 +768,7 @@
       applyCollapsed();
       return;
     }
+    if (!state.enabled) return;
     if (action === "scan") {
       hideConfirm();
       runScan();
@@ -778,13 +811,17 @@
   });
 
   shadow.addEventListener("change", (event) => {
+    if (event.target.id === "power") {
+      state.enabled = event.target.checked;
+      if (state.enabled) state.collapsed = false;
+      saveSettings();
+      if (state.enabled) schedulePaint();
+      return;
+    }
     if (event.target.id !== "dim") return;
     state.dimOthers = event.target.checked;
-    if (!state.dimOthers) {
-      getCells().forEach((cell) => {
-        if (cell.getAttribute("data-xnf") === "dim") cell.removeAttribute("data-xnf");
-      });
-    }
+    if (!state.dimOthers) clearMarks("dim");
+    saveSettings();
     schedulePaint();
   });
 
@@ -798,10 +835,26 @@
   if (typeof chrome !== "undefined" && chrome.runtime?.onMessage) {
     chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       if (!message || message.type !== "XNF_TOGGLE") return;
+      if (!state.enabled) {
+        sendResponse({ ok: false, disabled: true });
+        return true;
+      }
       state.collapsed = !state.collapsed;
       applyCollapsed();
       sendResponse({ ok: true, collapsed: state.collapsed });
       return true;
+    });
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area !== "local" || !changes.xnfSettings) return;
+      const settings = changes.xnfSettings.newValue || {};
+      if (typeof settings.enabled === "boolean") state.enabled = settings.enabled;
+      if (typeof settings.dimOthers === "boolean") state.dimOthers = settings.dimOthers;
+      if (!state.dimOthers) clearMarks("dim");
+      applyEnabled();
+      if (state.enabled) {
+        watchColumn();
+        schedulePaint();
+      }
     });
   }
 
@@ -825,6 +878,7 @@
 
   let lastPath = location.pathname;
   setInterval(() => {
+    if (!state.enabled) return;
     mount();
     watchColumn();
     if (location.pathname !== lastPath) {
@@ -834,12 +888,28 @@
     }
   }, 1000);
 
-  state.collapsed = !isListPage();
-  renderHint();
-  renderStats();
-  renderList();
-  applyCollapsed();
-  mount();
-  watchColumn();
-  schedulePaint();
+  function start() {
+    state.collapsed = !isListPage();
+    $("dim").checked = state.dimOthers;
+    $("power").checked = state.enabled;
+    renderHint();
+    renderStats();
+    renderList();
+    applyEnabled();
+    mount();
+    if (!state.enabled) return;
+    watchColumn();
+    schedulePaint();
+  }
+
+  if (typeof chrome !== "undefined" && chrome.storage?.local) {
+    chrome.storage.local.get({ xnfSettings: { enabled: true, dimOthers: false } }, (data) => {
+      const settings = data.xnfSettings || {};
+      if (typeof settings.enabled === "boolean") state.enabled = settings.enabled;
+      if (typeof settings.dimOthers === "boolean") state.dimOthers = settings.dimOthers;
+      start();
+    });
+  } else {
+    start();
+  }
 })();

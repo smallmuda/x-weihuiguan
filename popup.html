@@ -8,9 +8,15 @@
   <body>
     <main>
       <h1>X 未回关筛选</h1>
-      <p>
-        打开自己的「正在关注」或「已认证关注者」页面，用右侧面板筛出你已关注、对方没回关的账号，再取消关注。
-      </p>
+      <p>关掉之后，页面上的面板、红框和淡化都会撤掉。下次打开扩展图标就能再打开。</p>
+      <label class="row">
+        <input id="enabled" type="checkbox" checked />
+        <span>启用扩展</span>
+      </label>
+      <label class="row">
+        <input id="dim" type="checkbox" />
+        <span>淡化不是这类的人</span>
+      </label>
       <button id="toggle" type="button">显示 / 收起面板</button>
       <p id="status"></p>
     </main>
